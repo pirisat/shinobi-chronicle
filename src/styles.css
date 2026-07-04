@@ -472,6 +472,21 @@ main { position: relative; }
   line-height: 1.35;
 }
 
+/* Chapter V has the longest title + quote, so reserve its own breathing room. */
+.card-5 {
+  width: min(620px, 100%);
+  padding-bottom: 30px;
+}
+.card-5 h2 {
+  max-width: 510px;
+  line-height: 1.02;
+  margin-bottom: 1.05rem;
+}
+.card-5 blockquote {
+  max-width: 500px;
+  margin-top: 1.35rem;
+}
+
 .scroll-track { position: relative; z-index: 1; }
 .step {
   min-height: 120svh;
@@ -549,7 +564,7 @@ main { position: relative; }
   .story-title { font-size: clamp(3.6rem, 16vw, 6.3rem); }
   .hero-description { max-width: 92%; font-size: 0.95rem; }
   .story-cards { min-height: 340px; }
-  .story-card { width: 100%; padding: 24px 22px 22px; }
+  .story-card { width: 100%; padding: 24px 22px 22px; max-width: 680px; }
   .story-card.left,
   .story-card.right { left: 0; right: 0; }
   .story-card h2 { font-size: clamp(2rem, 9vw, 3.3rem); }
@@ -565,6 +580,9 @@ main { position: relative; }
   .hero-description { max-width: 100%; }
   .story-cards { min-height: 360px; }
   .story-card { padding: 18px 18px 20px; bottom: 6px; }
+  .card-5 { padding-bottom: 22px; }
+  .card-5 h2 { font-size: clamp(1.95rem, 8.6vw, 2.9rem); line-height: 1.03; }
+  .card-5 blockquote { margin-top: 1rem; font-size: 1rem; }
   .story-card p { font-size: 0.9rem; }
   .preloader-eye { width: 74px; height: 74px; }
   .scene-index { font-size: 1.2rem; }
@@ -707,7 +725,7 @@ main { position: relative; }
 .crow-transition i { position: absolute; left: calc((var(--i) * 7%) - 12%); top: calc(6% + ((var(--i) * 17%) % 78%)); width: 74px; height: 36px; background: #050507; clip-path: polygon(0 50%, 30% 20%, 48% 48%, 70% 13%, 100% 50%, 68% 72%, 48% 55%, 27% 82%); transform: scale(calc(.5 + (var(--i) % 4) * .22)); filter: drop-shadow(0 8px 8px rgba(0,0,0,.45)); }
 .rain-dissolve { background: linear-gradient(115deg, transparent 10%, rgba(230,239,255,.12) 35%, rgba(255,255,255,.5) 50%, rgba(230,239,255,.12) 65%, transparent 90%), repeating-linear-gradient(112deg, transparent 0 18px, rgba(255,255,255,.18) 19px 20px, transparent 21px 38px); mix-blend-mode: screen; }
 
-.finale { position: absolute; z-index: 30; right: 0; bottom: 4vh; width: min(390px, 94vw); text-align: center; opacity: 0; transform: translateY(18px); pointer-events: none; transition: opacity .75s ease, transform .75s ease; }
+.finale { position: absolute; z-index: 30; right: 0; bottom: 7vh; width: min(390px, 94vw); text-align: center; opacity: 0; transform: translateY(18px); pointer-events: none; transition: opacity .75s ease, transform .75s ease; }
 .finale.is-visible { opacity: 1; transform: translateY(0); pointer-events: auto; transition-delay: .55s; }
 .finale-feather { display: inline-block; margin-bottom: .7rem; color: rgba(255,255,255,.82); font-size: 1.5rem; animation: final-feather 4s ease-in-out infinite; }
 .finale p { margin: 0; color: rgba(255,255,255,.72); font-family: 'Playfair Display', Georgia, serif; font-style: italic; font-size: 1.05rem; }

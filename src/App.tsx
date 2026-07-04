@@ -425,6 +425,8 @@ function App() {
     setMusicOn(true)
   }
 
+  const showFinale = activeScene === 4 && progress > 0.94
+
   return (
     <main ref={app}>
       <section className={`burden-intro ${entered ? 'is-entered' : ''}`} aria-hidden={entered}>
@@ -562,7 +564,7 @@ function App() {
                 </article>
               ))}
             </div>
-            <div className={`finale ${activeScene === 4 ? 'is-visible' : ''}`}>
+            <div className={`finale ${showFinale ? 'is-visible' : ''}`}>
               <span className="finale-feather" aria-hidden="true">✦</span>
               <p>His silence was never empty.</p>
               <h2>It was love.</h2>
