@@ -1,15 +1,21 @@
 # The Burden of a Shinobi
 
-A cinematic telling of Itachi Uchiha's story.
+A visual story of Itachi Uchiha.
 
-## Latest fix
+## Music
 
-- Chapter V now has dedicated layout spacing for its longer title and quote.
-- The final **“It was love.”** moment is delayed until the chapter text has cleared, preventing overlap on desktop and mobile.
+The experience includes an original, slow requiem-style score: soft piano, warm strings, and sparse flute-like phrases. It begins when the viewer chooses **Begin the Story**.
 
-## Run
+## Run locally
 
 ```bash
 npm install
 npm run dev
+```
+
+## Production build
+
+```bash
+npm run build
+npm run preview
 ```

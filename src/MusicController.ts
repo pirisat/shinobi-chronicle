@@ -14,7 +14,7 @@ export class MusicController {
     audio.play()
       .then(() => {
         this.active = true
-        this.fadeTo(0.64, 900)
+        this.fadeTo(0.74, 1200)
       })
       .catch(() => {
         this.stop()
@@ -25,14 +25,14 @@ export class MusicController {
 
   setScene(scene: number, immediate = false) {
     if (!this.audio || !this.active) return
-    const levels = [0.56, 0.60, 0.64, 0.68, 0.54]
+    const levels = [0.68, 0.70, 0.72, 0.72, 0.64]
     this.fadeTo(levels[scene] ?? 0.5, immediate ? 0 : 650)
   }
 
   duck(amount = 0.28) {
     if (!this.audio || !this.active) return
-    this.fadeTo(amount, 220)
-    window.setTimeout(() => this.fadeTo(0.60, 900), 340)
+    this.fadeTo(amount, 340)
+    window.setTimeout(() => this.fadeTo(0.66, 1200), 520)
   }
 
   private fadeTo(target: number, duration: number) {
