@@ -472,20 +472,6 @@ main { position: relative; }
   line-height: 1.35;
 }
 
-/* Chapter V has the longest title + quote, so reserve its own breathing room. */
-.card-5 {
-  width: min(620px, 100%);
-  padding-bottom: 30px;
-}
-.card-5 h2 {
-  max-width: 510px;
-  line-height: 1.02;
-  margin-bottom: 1.05rem;
-}
-.card-5 blockquote {
-  max-width: 500px;
-  margin-top: 1.35rem;
-}
 
 .scroll-track { position: relative; z-index: 1; }
 .step {
@@ -494,7 +480,8 @@ main { position: relative; }
   align-items: center;
   justify-content: center;
 }
-.step.is-last { min-height: 155svh; }
+.step.is-last { min-height: 130svh; }
+.end-credit-step { min-height: 150svh; }
 .step-label {
   opacity: 0;
   width: 100%;
@@ -570,7 +557,8 @@ main { position: relative; }
   .story-card h2 { font-size: clamp(2rem, 9vw, 3.3rem); }
   .branch-1, .branch-2 { width: 16%; }
   .step { min-height: 105svh; }
-  .step.is-last { min-height: 135svh; }
+  .step.is-last { min-height: 120svh; }
+  .end-credit-step { min-height: 135svh; }
 }
 
 @media (max-width: 640px) {
@@ -580,13 +568,22 @@ main { position: relative; }
   .hero-description { max-width: 100%; }
   .story-cards { min-height: 360px; }
   .story-card { padding: 18px 18px 20px; bottom: 6px; }
-  .card-5 { padding-bottom: 22px; }
-  .card-5 h2 { font-size: clamp(1.95rem, 8.6vw, 2.9rem); line-height: 1.03; }
-  .card-5 blockquote { margin-top: 1rem; font-size: 1rem; }
   .story-card p { font-size: 0.9rem; }
   .preloader-eye { width: 74px; height: 74px; }
   .scene-index { font-size: 1.2rem; }
-  .step.is-last { min-height: 120svh; }
+  .step.is-last { min-height: 108svh; }
+  .end-credit-step { min-height: 125svh; }
+}
+
+
+@media (max-width: 900px) {
+  .ending-scene { bottom: 10vh; width: min(540px, 88vw); }
+}
+@media (max-width: 640px) {
+  .ending-scene { bottom: 8vh; width: 86vw; }
+  .ending-scene h2 { font-size: clamp(3.1rem, 16vw, 5.4rem); }
+  .ending-copy { margin-top: 1rem; font-size: 1rem; }
+  .ending-credits { margin-top: 1.35rem; font-size: .53rem; }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -725,12 +722,22 @@ main { position: relative; }
 .crow-transition i { position: absolute; left: calc((var(--i) * 7%) - 12%); top: calc(6% + ((var(--i) * 17%) % 78%)); width: 74px; height: 36px; background: #050507; clip-path: polygon(0 50%, 30% 20%, 48% 48%, 70% 13%, 100% 50%, 68% 72%, 48% 55%, 27% 82%); transform: scale(calc(.5 + (var(--i) % 4) * .22)); filter: drop-shadow(0 8px 8px rgba(0,0,0,.45)); }
 .rain-dissolve { background: linear-gradient(115deg, transparent 10%, rgba(230,239,255,.12) 35%, rgba(255,255,255,.5) 50%, rgba(230,239,255,.12) 65%, transparent 90%), repeating-linear-gradient(112deg, transparent 0 18px, rgba(255,255,255,.18) 19px 20px, transparent 21px 38px); mix-blend-mode: screen; }
 
-.finale { position: absolute; z-index: 30; right: 0; bottom: 7vh; width: min(390px, 94vw); text-align: center; opacity: 0; transform: translateY(18px); pointer-events: none; transition: opacity .75s ease, transform .75s ease; }
-.finale.is-visible { opacity: 1; transform: translateY(0); pointer-events: auto; transition-delay: .55s; }
-.finale-feather { display: inline-block; margin-bottom: .7rem; color: rgba(255,255,255,.82); font-size: 1.5rem; animation: final-feather 4s ease-in-out infinite; }
-.finale p { margin: 0; color: rgba(255,255,255,.72); font-family: 'Playfair Display', Georgia, serif; font-style: italic; font-size: 1.05rem; }
-.finale h2 { margin: .2rem 0 1.15rem; font-family: 'Playfair Display', Georgia, serif; font-weight: 500; font-size: clamp(2.4rem, 5vw, 4rem); line-height: .9; }
-.finale button { border: 1px solid rgba(255,255,255,.28); background: rgba(4,5,8,.4); color: #fff; padding: .75rem 1rem; cursor: pointer; letter-spacing: .16em; font-size: .62rem; }
+.ending-scene {
+  position: absolute;
+  z-index: 80;
+  left: 50%;
+  bottom: 8vh;
+  width: min(540px, 92vw);
+  text-align: center;
+  transform: translate(-50%, 26px);
+  pointer-events: auto;
+}
+.ending-mark { display: inline-block; margin-bottom: .85rem; color: rgba(255,255,255,.88); font-size: 1.7rem; animation: final-feather 4s ease-in-out infinite; }
+.ending-kicker { margin: 0 0 .75rem; color: rgba(255,255,255,.58); font-size: .62rem; font-weight: 700; letter-spacing: .34em; }
+.ending-scene h2 { margin: 0; color: #fff9f7; font-family: 'Playfair Display', Georgia, serif; font-size: clamp(3.4rem, 9vw, 7rem); font-weight: 500; line-height: .78; letter-spacing: -.06em; }
+.ending-copy { max-width: 360px; margin: 1.35rem auto 0; color: rgba(255,255,255,.78); font-family: 'Playfair Display', Georgia, serif; font-size: clamp(1rem, 2vw, 1.28rem); font-style: italic; line-height: 1.55; }
+.ending-credits { display: grid; gap: .42rem; margin: 1.8rem auto 1.35rem; color: rgba(255,255,255,.55); font-size: .58rem; letter-spacing: .2em; line-height: 1.5; }
+.ending-scene button { border: 1px solid rgba(255,255,255,.30); background: rgba(4,5,8,.44); color: #fff; padding: .78rem 1.05rem; cursor: pointer; letter-spacing: .16em; font-size: .62rem; }
 
 @keyframes intro-rise { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
 @keyframes moon-breathe { 0%,100% { transform: scale(.88); opacity: .35; } 50% { transform: scale(1.08); opacity: .8; } }
@@ -745,13 +752,10 @@ main { position: relative; }
   .fragment-moon { right: 12%; top: 30%; }
   .fragment-storm { left: 74%; bottom: 28%; }
   .fragment-farewell { right: 11%; bottom: 34%; }
-  .finale { left: 50%; right: auto; bottom: 11vh; transform: translate(-50%, 18px); }
-  .finale.is-visible { transform: translate(-50%, 0); }
 }
 @media (max-width: 640px) {
   .intro-content h1 { font-size: clamp(3.7rem, 16vw, 5.5rem); }
   .intro-kicker { letter-spacing: .36em; }
   .memory-card { padding: 30px 24px; }
   .memory-fragment { width: 34px; height: 34px; font-size: .8rem; }
-  .finale { width: 88vw; bottom: 10vh; }
 }

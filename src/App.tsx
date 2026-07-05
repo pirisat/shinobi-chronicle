@@ -132,6 +132,8 @@ function App() {
   const app = useRef<HTMLDivElement>(null)
   const music = useRef<MusicController | null>(null)
   const cursorGlow = useRef<HTMLDivElement>(null)
+  const activeSceneRef = useRef(0)
+  const creditsPhaseRef = useRef<'chapter' | 'credits' | 'fade'>('chapter')
 
   const [activeScene, setActiveScene] = useState(0)
   const [progress, setProgress] = useState(0)
@@ -139,7 +141,7 @@ function App() {
   const [pulse, setPulse] = useState(0.2)
   const [loaded, setLoaded] = useState(false)
   const [loadProgress, setLoadProgress] = useState(0)
-  const [entered, setEntered] = useState(false)
+  const [entered, setEntered] = useState(() => typeof window !== 'undefined' && new URLSearchParams(window.location.search).has('replay'))
   const [memoryOpen, setMemoryOpen] = useState<MemoryFragment | null>(null)
   const [screenWidth, setScreenWidth] = useState(() => (typeof window === 'undefined' ? 1440 : window.innerWidth))
   const [reducedMotion, setReducedMotion] = useState(false)
@@ -163,6 +165,19 @@ function App() {
     })
 
     return () => { cancelled = true }
+  }, [])
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search)
+    if (!params.has('replay')) return
+
+    // The replay link reloads at the top of the document and removes its marker
+    // so refreshes do not keep forcing a replay state.
+    window.scrollTo({ top: 0, behavior: 'auto' })
+    params.delete('replay')
+    const query = params.toString()
+    window.history.replaceState({}, '', `${window.location.pathname}${query ? `?${query}` : ''}${window.location.hash}`)
+    window.requestAnimationFrame(() => ScrollTrigger.refresh())
   }, [])
 
   useEffect(() => {
@@ -237,6 +252,7 @@ function App() {
       const frames = gsap.utils.toArray<HTMLElement>('.world-frame')
       const images = gsap.utils.toArray<HTMLElement>('.world-image')
       const cards = gsap.utils.toArray<HTMLElement>('.story-card')
+      const endingScene = document.querySelector<HTMLElement>('.ending-scene')
       const progressBar = document.querySelector<HTMLElement>('.progress-fill')
       const wipe = document.querySelector<HTMLElement>('.scene-wipe')
       const wipeBand = document.querySelector<HTMLElement>('.scene-wipe-band')
@@ -249,6 +265,7 @@ function App() {
       const heroChildren = gsap.utils.toArray<HTMLElement>('.hero-copy > *')
       const branchesNodes = gsap.utils.toArray<HTMLElement>('.branch')
       const cardLines = cards.map((card) => Array.from(card.querySelectorAll<HTMLElement>(':scope > *')))
+      const endingLines = endingScene ? Array.from(endingScene.querySelectorAll<HTMLElement>(':scope > *')) : []
 
       if (!story || !storyStage || !stageCamera) return
 
@@ -257,6 +274,8 @@ function App() {
       gsap.set(frames[0], { autoAlpha: 1 })
       gsap.set(images[0], { scale: scenes[0].startScale })
       gsap.set(cards, { autoAlpha: 0 })
+      if (endingScene) gsap.set(endingScene, { autoAlpha: 0, y: 26, pointerEvents: 'none' })
+      if (endingLines.length) gsap.set(endingLines, { autoAlpha: 0, y: 22, filter: 'blur(10px)' })
       gsap.set(heroChildren, { autoAlpha: 0, y: 24 })
       gsap.set(titleSpans, { autoAlpha: 0, yPercent: 110 })
       gsap.set(wipe, { autoAlpha: 0 })
@@ -276,6 +295,19 @@ function App() {
           scrub: compact ? 0.9 : 1.1,
           onUpdate: (self) => {
             setProgress(self.progress)
+            const storyStep = Math.floor(self.progress * (scenes.length + 1) + 0.0001)
+            const chapter = Math.min(scenes.length - 1, storyStep)
+            const creditsPhase = self.progress >= 0.975 ? 'fade' : self.progress >= 0.89 ? 'credits' : 'chapter'
+            if (chapter !== activeSceneRef.current) {
+              activeSceneRef.current = chapter
+              setActiveScene(chapter)
+            }
+            // Track every credits phase, not only whether credits are visible.
+            // This ensures the final fade phase actually reaches the audio controller.
+            if (creditsPhase !== creditsPhaseRef.current) {
+              creditsPhaseRef.current = creditsPhase
+              music.current?.setCredits(creditsPhase, chapter)
+            }
             const velocity = Math.abs(self.getVelocity())
             const blur = performanceMode ? Math.min(4, velocity / 1500) : Math.min(10, velocity / 900)
             storyStage.style.setProperty('--velocity-blur', `${blur.toFixed(2)}px`)
@@ -291,14 +323,22 @@ function App() {
         .fromTo(branchesNodes, { xPercent: -8, yPercent: 0 }, { xPercent: 8, yPercent: -3, stagger: 0.03, duration: 1 }, 0)
         .to(heroCopy, { autoAlpha: 0, y: -18, duration: 0.28 }, 0.8)
 
-      scenes.slice(1).forEach((scene, index) => {
-        const prevIndex = index
-        const nextIndex = index + 1
-        const position = nextIndex * 1
+      // Every scene change belongs to this same timeline, so scrolling forward and back
+      // always restores the exact previous chapter state.
+      scenes.slice(1).forEach((scene, offset) => {
+        const nextIndex = offset + 1
+        const prevIndex = nextIndex - 1
+        const position = nextIndex
+        const previousCard = cards[prevIndex]
+        const nextCard = cards[nextIndex]
+
+        if (previousCard) {
+          master
+            .to(cardLines[prevIndex], { autoAlpha: 0, y: -24, filter: 'blur(10px)', stagger: 0.03, duration: 0.22 }, position - 0.24)
+            .to(previousCard, { autoAlpha: 0, duration: 0.18 }, position - 0.06)
+        }
 
         master
-          .to(cardLines[prevIndex], { autoAlpha: 0, y: -24, filter: 'blur(10px)', stagger: 0.03, duration: 0.22 }, position - 0.24)
-          .to(cards[prevIndex], { autoAlpha: 0, duration: 0.18 }, position - 0.06)
           .to(wipe, { autoAlpha: 1, duration: 0.04 }, position - 0.06)
           .fromTo(wipeBand, { xPercent: -135 }, { xPercent: 135, duration: compact ? 0.28 : 0.34, ease: 'power2.inOut' }, position - 0.06)
           .to(wipe, { autoAlpha: 0, duration: 0.06 }, position + 0.29)
@@ -311,13 +351,24 @@ function App() {
             position,
           )
           .to(stageCamera, {
-            scale: compact ? 1 : 1 + (nextIndex === 2 ? 0.016 : nextIndex === 3 ? 0.009 : 0),
+            scale: compact ? 1 : 1 + (nextIndex === 2 ? 0.016 : nextIndex === 3 ? 0.009 : 0.004),
             xPercent: nextIndex % 2 === 0 ? -1 : 1.5,
             yPercent: -1 - nextIndex,
             duration: 0.9,
           }, position)
-          .set(cards[nextIndex], { autoAlpha: 1 }, position + 0.02)
-          .fromTo(cardLines[nextIndex], { autoAlpha: 0, y: 28, filter: 'blur(10px)' }, { autoAlpha: 1, y: 0, filter: 'blur(0px)', stagger: 0.05, duration: 0.3, ease: 'power3.out' }, position + 0.08)
+
+        // Every chapter, including Chapter V, has its own complete story card.
+        if (nextCard) {
+          master
+            .set(nextCard, { autoAlpha: 1 }, position + 0.02)
+            .fromTo(cardLines[nextIndex], { autoAlpha: 0, y: 28, filter: 'blur(10px)' }, { autoAlpha: 1, y: 0, filter: 'blur(0px)', stagger: 0.05, duration: 0.3, ease: 'power3.out' }, position + 0.08)
+        }
+
+        if (nextIndex === 1) {
+          master
+            .fromTo(ash, { autoAlpha: 0, xPercent: -8 }, { autoAlpha: 0.85, xPercent: 8, duration: 0.46 }, position - 0.08)
+            .to(ash, { autoAlpha: 0, duration: 0.24 }, position + 0.34)
+        }
 
         if (nextIndex === 2) {
           master
@@ -325,12 +376,6 @@ function App() {
             .to('.moon-pulse', { autoAlpha: 1, duration: 0.9 }, position)
             .fromTo('.iris-transition', { autoAlpha: 0, scale: 0.18 }, { autoAlpha: 1, scale: 2.2, duration: 0.24, ease: 'power2.in' }, position + 0.27)
             .to('.iris-transition', { autoAlpha: 0, scale: 4.8, duration: 0.22, ease: 'power2.out' }, position + 0.52)
-        }
-
-        if (nextIndex === 1) {
-          master
-            .fromTo(ash, { autoAlpha: 0, xPercent: -8 }, { autoAlpha: 0.85, xPercent: 8, duration: 0.46 }, position - 0.08)
-            .to(ash, { autoAlpha: 0, duration: 0.24 }, position + 0.34)
         }
 
         if (nextIndex === 3) {
@@ -343,16 +388,24 @@ function App() {
 
         if (nextIndex === 4) {
           master
-            .fromTo(rainDissolve, { autoAlpha: 0, scale: 0.86 }, { autoAlpha: 0.9, scale: 1.1, duration: 0.42 }, position - 0.02)
+            .fromTo(rainDissolve, { autoAlpha: 0, scale: 0.86 }, { autoAlpha: 0.72, scale: 1.08, duration: 0.42 }, position - 0.02)
             .to(rainDissolve, { autoAlpha: 0, duration: 0.38 }, position + 0.38)
-            .fromTo(flash, { autoAlpha: 0 }, { autoAlpha: 0.42, duration: 0.14 }, position + 0.02)
-            .to(flash, { autoAlpha: 0, duration: 0.22 }, position + 0.2)
             .to('.ambient-rain', { autoAlpha: 0, duration: 0.7 }, position)
-            .to('.ambient-lightning', { autoAlpha: 0.72, duration: 0.7 }, position)
+            .to('.ambient-lightning', { autoAlpha: 0.4, duration: 0.7 }, position)
             .to('.ambient-light', { autoAlpha: 1, duration: 0.8 }, position)
-            .to('.ambient-red', { autoAlpha: 0.14, duration: 0.8 }, position)
+            .to('.ambient-red', { autoAlpha: 0.08, duration: 0.8 }, position)
         }
       })
+
+      // Credits follow Chapter V. The final chapter clears first, then the credits become interactive.
+      if (endingScene) {
+        master
+          .to(cardLines[4], { autoAlpha: 0, y: -24, filter: 'blur(10px)', stagger: 0.03, duration: 0.24 }, 4.64)
+          .to(cards[4], { autoAlpha: 0, duration: 0.18 }, 4.82)
+          .set(endingScene, { pointerEvents: 'auto' }, 4.98)
+          .to(endingScene, { autoAlpha: 1, y: 0, duration: 0.34, ease: 'power2.out' }, 4.98)
+          .to(endingLines, { autoAlpha: 1, y: 0, filter: 'blur(0px)', stagger: 0.07, duration: 0.28, ease: 'power3.out' }, 5.08)
+      }
 
       gsap.to(progressBar, {
         scaleY: 1,
@@ -367,16 +420,6 @@ function App() {
         if (!compact) gsap.to('.cursor-ring', { scale: 1.18, duration: 1.8, repeat: -1, yoyo: true, ease: 'sine.inOut' })
       }
 
-      gsap.utils.toArray<HTMLElement>('.step').forEach((step, index) => {
-        ScrollTrigger.create({
-          trigger: step,
-          start: compact ? 'top 58%' : 'top center',
-          end: compact ? 'bottom 58%' : 'bottom center',
-          onEnter: () => setActiveScene(index),
-          onEnterBack: () => setActiveScene(index),
-        })
-      })
-
       ScrollTrigger.refresh()
     }, app)
 
@@ -386,7 +429,6 @@ function App() {
   useEffect(() => {
     if (!musicOn) return
     music.current?.setScene(activeScene)
-    if (activeScene === 4) music.current?.duck(0.28)
     setPulse(0.92)
     window.setTimeout(() => setPulse(activeScene === 4 ? 0.45 : 0.28), 320)
   }, [activeScene, musicOn])
@@ -404,10 +446,8 @@ function App() {
     window.setTimeout(() => ScrollTrigger.refresh(), 350)
   }
 
-  const replayStory = () => {
-    setMemoryOpen(null)
-    window.scrollTo({ top: 0, behavior: 'smooth' })
-  }
+  // Replay intentionally uses native navigation instead of manipulating a sticky
+  // GSAP scene. The link works even if an animation frame is currently in progress.
 
   const toggleMusic = () => {
     if (musicOn) {
@@ -425,7 +465,6 @@ function App() {
     setMusicOn(true)
   }
 
-  const showFinale = activeScene === 4 && progress > 0.94
 
   return (
     <main ref={app}>
@@ -564,12 +603,16 @@ function App() {
                 </article>
               ))}
             </div>
-            <div className={`finale ${showFinale ? 'is-visible' : ''}`}>
-              <span className="finale-feather" aria-hidden="true">✦</span>
-              <p>His silence was never empty.</p>
-              <h2>It was love.</h2>
-              <button type="button" onClick={replayStory}>REPLAY THE STORY</button>
-            </div>
+            <section className="ending-scene" aria-label="End credits">
+              <span className="ending-mark" aria-hidden="true">✦</span>
+              <p className="ending-kicker">EPILOGUE</p>
+              <h2>His silence was never empty.<br />It was love.</h2>
+              <div className="ending-credits">
+                <span>THE BURDEN OF A SHINOBI</span>
+                <span>A SHINOBI STUDIO STORY</span>
+                <span>THANK YOU FOR WATCHING</span>
+              </div>
+            </section>
           </div>
         </div>
 
@@ -579,6 +622,7 @@ function App() {
               <div className="step-label"><span>{scene.eyebrow}</span></div>
             </section>
           ))}
+          <section className="step end-credit-step"><div className="step-label"><span>END CREDITS</span></div></section>
         </div>
       </section>
     </main>
