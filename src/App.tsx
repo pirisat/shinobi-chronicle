@@ -383,7 +383,10 @@ function App() {
             .fromTo(crowWipe, { autoAlpha: 0, xPercent: -18 }, { autoAlpha: 1, xPercent: 12, duration: 0.26 }, position - 0.02)
             .to(crowWipe, { autoAlpha: 0, duration: 0.32 }, position + 0.28)
             .to('.ambient-rain', { autoAlpha: 1, duration: 0.8 }, position)
-            .to('.storm-shake', { x: 4, y: -2, duration: 0.08, repeat: 3, yoyo: true, ease: 'none' }, position + 0.24)
+            .to('.ambient-lightning', { autoAlpha: 0.62, duration: 0.26 }, position + 0.15)
+            .to(flash, { autoAlpha: 0.46, duration: 0.05 }, position + 0.31)
+            .to(flash, { autoAlpha: 0, duration: 0.16 }, position + 0.38)
+            .to('.storm-shake', { x: 3, y: -1, duration: 0.07, repeat: 3, yoyo: true, ease: 'none' }, position + 0.31)
         }
 
         if (nextIndex === 4) {
@@ -391,7 +394,7 @@ function App() {
             .fromTo(rainDissolve, { autoAlpha: 0, scale: 0.86 }, { autoAlpha: 0.72, scale: 1.08, duration: 0.42 }, position - 0.02)
             .to(rainDissolve, { autoAlpha: 0, duration: 0.38 }, position + 0.38)
             .to('.ambient-rain', { autoAlpha: 0, duration: 0.7 }, position)
-            .to('.ambient-lightning', { autoAlpha: 0.4, duration: 0.7 }, position)
+            .to('.ambient-lightning', { autoAlpha: 0, duration: 0.38 }, position)
             .to('.ambient-light', { autoAlpha: 1, duration: 0.8 }, position)
             .to('.ambient-red', { autoAlpha: 0.08, duration: 0.8 }, position)
         }
@@ -525,7 +528,7 @@ function App() {
       </div>
 
       <section className="story" aria-label="Continuous cinematic Itachi story">
-        <div className="story-stage storm-shake">
+        <div className={`story-stage storm-shake scene-${activeScene + 1}`}>
           <div className="stage-camera">
             <div className="world-stack" aria-hidden="true">
               {scenes.map((scene) => (
@@ -552,7 +555,11 @@ function App() {
             <div className="ambient ambient-rain" aria-hidden="true">
               {rain.map((index) => <i key={index} className="drop" style={{ '--i': index } as CSSProperties} />)}
             </div>
-            <div className="ambient ambient-lightning" />
+            <div className="ambient ambient-lightning" aria-hidden="true"><span className="lightning-bolt bolt-a" /><span className="lightning-bolt bolt-b" /></div>
+            <div className="chapter-atmosphere rooftop-mist" aria-hidden="true"><i /><i /><i /></div>
+            <div className="chapter-atmosphere war-fragments" aria-hidden="true">{range(12).map((index) => <i key={index} style={{ '--i': index } as CSSProperties} />)}</div>
+            <div className="chapter-atmosphere crimson-eclipse" aria-hidden="true"><i /><i /><i /></div>
+            <div className="chapter-atmosphere farewell-light" aria-hidden="true"><i /><i /></div>
             <div className="moon-pulse" aria-hidden="true"><span className="ring ring-a" /><span className="ring ring-b" /></div>
             <div className="iris-transition" aria-hidden="true"><span /><span /><span /></div>
             <div className="crows" aria-hidden="true">
